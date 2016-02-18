@@ -15,9 +15,14 @@ class RedditApiServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->publishes([
+            __DIR__.'/publish/config/redditapi.php' => config_path('redditapi.php'),
+        ]);
+        /*
         $this->mergeConfigFrom(
             __DIR__.'/publish/config/redditapi.php', 'redditapi'
         );
+        */
     }
 
     /**
