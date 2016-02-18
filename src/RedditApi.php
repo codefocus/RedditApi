@@ -2,7 +2,7 @@
 
 namespace Codefocus\RedditApi;
 
-//use GuzzleHttp\Client;
+use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request as Psr7Request;
 use Illuminate\Contracts\Config\Repository;
 
@@ -21,6 +21,7 @@ class RedditApi {
     protected function getClient() {
         static $client;
         if (!$client) {
+            //  ['base_uri' => 'https://foo.com/api/']
             $client = new Client();
         }
         return $client;
@@ -29,9 +30,7 @@ class RedditApi {
     
     
     public function getAccessToken() {
-        
-        $headers        = [];
-        $headers           = [
+        $headers        = [
             'auth'          => [
                 $this->config['key'],
                 $this->config['secret'],
@@ -49,7 +48,10 @@ class RedditApi {
             $headers
         );
         
-        return $request;
+        
+        return $this->getClient()->send($request, ['timeout' => 4]);
+        
+        //return $request;
         
         //dd($request);
         
