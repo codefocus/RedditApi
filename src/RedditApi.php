@@ -30,16 +30,17 @@ class RedditApi {
     
     public function getAccessToken() {
         
-        $headers = [];
-        $body = [
-            'auth' => [$this->credentials->getClientId(), $this->credentials->getClientSecret()],
-            'form_params' => [
-                'grant_type' => 'password',
-                //'username' => $this->credentials->getClientUsername(),
-                //'password' => $this->credentials->getClientPassword()
-                'username' => $this->config['username'],
-                'password' => $this->config['password'],
-            ]
+        $headers        = [];
+        $body           = [
+            'auth'          => [
+                $this->config['key'],
+                $this->config['secret'],
+            ],
+            'form_params'   => [
+                'grant_type'    => 'password',
+                'username'      => $this->config['username'],
+                'password'      => $this->config['password'],
+            ],
         ];
         
         $request = new Psr7Request(
