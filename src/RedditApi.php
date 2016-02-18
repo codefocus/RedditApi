@@ -31,7 +31,7 @@ class RedditApi {
     public function getAccessToken() {
         
         $headers        = [];
-        $body           = [
+        $headers           = [
             'auth'          => [
                 $this->config['key'],
                 $this->config['secret'],
@@ -46,8 +46,7 @@ class RedditApi {
         $request = new Psr7Request(
             'POST',
             'https://www.reddit.com/api/v1/access_token',
-            $headers,
-            $body
+            $headers
         );
         
         return $request;
