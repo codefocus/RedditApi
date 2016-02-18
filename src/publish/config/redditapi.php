@@ -10,7 +10,7 @@
 return [
 //  https://github.com/reddit/reddit/wiki/oauth2-app-types
 //  One of: "web", "installed" or "script".
-    'app_type'      => ''
+    'app_type'      => '',
     
 //  Your application's client secret.
     'secret'        => '',
