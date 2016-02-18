@@ -12,7 +12,11 @@ return [
 //  One of: "web", "installed" or "script".
     'app_type'      => '',
     
-//  Your application's client secret.
+//  Your application's client credentials.
+    'key'           => '',
     'secret'        => '',
+    
+    'endpoints'     => '',
+    'password'      => '',
     
 ];
