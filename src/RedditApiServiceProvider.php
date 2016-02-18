@@ -8,6 +8,8 @@ use RedditApi;
 
 class RedditApiServiceProvider extends ServiceProvider
 {
+    protected $defer = true;
+    
     /**
      * Bootstrap the application services.
      *
@@ -37,4 +39,18 @@ class RedditApiServiceProvider extends ServiceProvider
             return new RedditApi(config('redditapi'));
         });
     }
+    
+    
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return ['Codefocus\RedditApi\RedditApi'];
+    }
+    
+    
+    
 }
