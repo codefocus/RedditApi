@@ -8,7 +8,7 @@ use RedditApi;
 
 class RedditApiServiceProvider extends ServiceProvider
 {
-    protected $defer = true;
+    //protected $defer = true;
     
     /**
      * Bootstrap the application services.
