@@ -36,6 +36,7 @@ class RedditApiServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton(RedditApi::class, function($app) {
+            dump('RedditApiServiceProvider::register');
             return new RedditApi(config('redditapi'));
         });
     }
@@ -48,6 +49,7 @@ class RedditApiServiceProvider extends ServiceProvider
      */
     public function provides()
     {
+        dump('RedditApiServiceProvider::provides');
         return ['Codefocus\RedditApi\RedditApi'];
     }
     

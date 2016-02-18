@@ -15,6 +15,8 @@ class RedditApi {
     
     public function __construct(Repository $config) {
         $this->config = $config;
+        dump('RedditApi::__construct');
+        dump($config);
     }
     
     
@@ -41,6 +43,8 @@ class RedditApi {
                 'password'      => $this->config['password'],
             ],
         ];
+        dump('RedditApi::getAccessToken');
+        return $headers;
         
         $request = new Psr7Request(
             'POST',
