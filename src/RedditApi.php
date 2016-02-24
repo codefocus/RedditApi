@@ -4,7 +4,7 @@ namespace Codefocus\RedditApi;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request as Psr7Request;
-use Illuminate\Contracts\Config\Repository;
+use Config;
 
 
 class RedditApi {
@@ -13,9 +13,9 @@ class RedditApi {
     private $config;
     
     
-    public function __construct(Repository $config) {
-        $this->config = $config;
-        dump('RedditApi::__construct');
+    public function __construct() {
+        $this->config = Config('redditapi');
+        //dump('RedditApi::__construct');
         dump($config);
     }
     
