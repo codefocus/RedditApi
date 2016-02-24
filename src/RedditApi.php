@@ -10,14 +10,6 @@ use Config;
 class RedditApi {
     
     private $client;
-    private $config;
-    
-    
-    public function __construct() {
-        $this->config = Config('redditapi');
-        //dump('RedditApi::__construct');
-        dump($config);
-    }
     
     
     protected function getClient() {
@@ -34,13 +26,13 @@ class RedditApi {
     public function getAccessToken() {
         $headers        = [
             'auth'          => [
-                $this->config['key'],
-                $this->config['secret'],
+                Config('redditapi.key'),
+                Config('redditapi.secret'),
             ],
             'form_params'   => [
                 'grant_type'    => 'password',
-                'username'      => $this->config['username'],
-                'password'      => $this->config['password'],
+                'username'      => Config('redditapi.username'),
+                'password'      => Config('redditapi.password'),
             ],
         ];
         dump('RedditApi::getAccessToken');
