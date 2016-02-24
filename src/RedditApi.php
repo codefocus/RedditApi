@@ -24,6 +24,20 @@ class RedditApi {
     
     
     public function getAccessToken() {
+        
+        $provider = new \League\OAuth2\Client\Provider\GenericProvider([
+            'clientId'                => Config('redditapi.key'),
+            'clientSecret'            => Config('redditapi.secret'),
+            //'redirectUri'             => 'http://my.example.com/your-redirect-url/',
+            //'urlAuthorize'            => 'http://service.example.com/authorize',
+            'urlAccessToken'          => 'https://www.reddit.com/api/v1/access_token',
+            'urlResourceOwnerDetails' => 'https://oauth.reddit.com/api/v1/me',
+        ]);
+        
+        
+        dd($provider);
+        
+        
         $headers        = [
             'auth'          => [
                 Config('redditapi.key'),
