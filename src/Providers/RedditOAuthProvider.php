@@ -109,7 +109,7 @@ class RedditOAuthProvider extends AbstractProvider
      *
      * @see https://github.com/reddit/reddit/wiki/OAuth2
      */
-    public function getAccessToken($grant = "authorization_code", $params = [])
+    public function getAccessToken($grant = "authorization_code", array $params = [])
     {
         // Allow Reddit-specific 'installed_client' to be specified as a string,
         // keeping consistent with the other grant types.
@@ -123,7 +123,7 @@ class RedditOAuthProvider extends AbstractProvider
     /**
      * {@inheritDoc}
      */
-    public function getAuthorizationUrl($options = [])
+    public function getAuthorizationUrl(array $options = [])
     {
         $url = parent::getAuthorizationUrl();
 
