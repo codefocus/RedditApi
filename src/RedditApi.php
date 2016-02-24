@@ -26,8 +26,8 @@ class RedditApi {
     public function getAccessToken() {
         
         $provider = new \League\OAuth2\Client\Provider\GenericProvider([
-            'clientId'                => Config('redditapi.key'),
-            'clientSecret'            => Config('redditapi.secret'),
+            'clientId'                => Config('redditapi.username'),
+            'clientSecret'            => Config('redditapi.password'),
             
             'redirectUri'             => 'http://my.example.com/your-redirect-url/',
             'urlAuthorize'            => 'http://service.example.com/authorize',
