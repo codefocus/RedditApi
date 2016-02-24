@@ -35,8 +35,8 @@ class RedditApi {
                 'password'      => Config('redditapi.password'),
             ],
         ];
-        dump('RedditApi::getAccessToken');
-        return $headers;
+        //dump('RedditApi::getAccessToken');
+        //return $headers;
         
         $request = new Psr7Request(
             'POST',
