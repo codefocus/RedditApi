@@ -36,6 +36,8 @@ class RedditApi {
             'urlResourceOwnerDetails' => 'https://oauth.reddit.com/api/v1/me',
         ]);
         
+        return $provider;
+        
         
         dd($provider);
         
