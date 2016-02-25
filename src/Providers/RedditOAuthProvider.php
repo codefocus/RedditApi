@@ -1,94 +1,114 @@
 <?php
+/**
+ * This file is part of the league/oauth2-client library
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @copyright Copyright (c) Alex Bilbie <hello@alexbilbie.com>
+ * @license http://opensource.org/licenses/MIT MIT
+ * @link http://thephpleague.com/oauth2-client/ Documentation
+ * @link https://packagist.org/packages/league/oauth2-client Packagist
+ * @link https://github.com/thephpleague/oauth2-client GitHub
+ */
 
-namespace Codefocus\RedditApi\Providers;
+namespace League\OAuth2\Client\Provider;
 
-use League\OAuth2\Client\Provider\AbstractProvider;
-use League\OAuth2\Client\Token\AccessToken;
-use Rudolf\OAuth2\Client\Grant\InstalledClient;
 use InvalidArgumentException;
 
-class RedditOAuthProvider extends AbstractProvider
+use League\OAuth2\Client\Provider\GenericProvider;
+
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+use League\OAuth2\Client\Token\AccessToken;
+use League\OAuth2\Client\Tool\BearerAuthorizationTrait;
+use Psr\Http\Message\ResponseInterface;
+
+/**
+ * Represents a generic service provider that may be used to interact with any
+ * OAuth 2.0 service provider, using Bearer token authentication.
+ */
+class RedditOAuthProvider extends GenericProvider
 {
-    /**
-     * User agent string required by Reddit
-     * Format <platform>:<app ID>:<version string> (by /u/<reddit username>)
-     *
-     * @see https://github.com/reddit/reddit/wiki/API
-     */
-    public $userAgent = "";
+    use BearerAuthorizationTrait;
 
     /**
-     * {@inheritDoc}
+     * @var string
      */
-    public $authorizationHeader = "bearer";
+    private $urlAuthorize;
 
     /**
-     * {@inheritDoc}
+     * @var string
      */
-    public function urlAuthorize()
+    private $urlAccessToken;
+
+    /**
+     * @var string
+     */
+    private $urlResourceOwnerDetails;
+
+    /**
+     * @var string
+     */
+    private $accessTokenMethod;
+
+    /**
+     * @var string
+     */
+    private $accessTokenResourceOwnerId;
+
+    /**
+     * @var array|null
+     */
+    private $scopes = null;
+
+    /**
+     * @var string
+     */
+    private $scopeSeparator;
+
+    /**
+     * @var string
+     */
+    private $responseError = 'error';
+
+    /**
+     * @var string
+     */
+    private $responseCode;
+
+    /**
+     * @var string
+     */
+    private $responseResourceOwnerId = 'id';
+
+    /**
+     * @param array $options
+     * @param array $collaborators
+     */
+    public function __construct(array $options = [], array $collaborators = [])
     {
-        return "https://ssl.reddit.com/api/v1/authorize";
-    }
+        $this->assertRequiredOptions($options);
 
-    /**
-     * {@inheritDoc}
-     */
-    public function urlAccessToken()
-    {
-        return "https://ssl.reddit.com/api/v1/access_token";
-    }
+        $possible   = $this->getConfigurableOptions();
+        $configured = array_intersect_key($options, array_flip($possible));
 
-    /**
-     * {@inheritDoc}
-     */
-    public function urlUserDetails(AccessToken $token)
-    {
-        return "https://oauth.reddit.com/api/v1/me";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function userDetails($response, AccessToken $token)
-    {
-        return $response;
-    }
-
-    /**
-     * Returns the user agent, which is required to be set.
-     *
-     * @return string
-     * @throws Rudolf\OAuth2\Client\Exception\ProviderException
-     */
-    protected function getUserAgent()
-    {
-        if ($this->userAgent) {
-            return $this->userAgent;
+        foreach ($configured as $key => $value) {
+            $this->$key = $value;
         }
 
-        // Use the server user agent as a fallback if no explicit one was set.
-        return $_SERVER["HTTP_USER_AGENT"];
+        // Remove all options that are only used locally
+        $options = array_diff_key($options, $configured);
+
+        parent::__construct($options, $collaborators);
     }
-
-
-    /**
-     * Validates that the user agent follows the Reddit API guide.
-     * Pattern: <platform>:<app ID>:<version string> (by /u/<reddit username>)
-     *
-     * @throws Rudolf\OAuth2\Client\Exception\ProviderException
-     */
-    protected function validateUserAgent()
-    {
-        if ( ! preg_match("~^.+:.+:.+ \(by /u/.+\)$~", $this->getUserAgent())) {
-            throw new InvalidArgumentException("User agent is not valid");
-        }
-    }
-
+    
+    
     /**
      * {@inheritDoc}
      */
     public function getHeaders($token = null)
     {
+        dd('GETHEADERS CALLED!');
         $this->validateUserAgent();
 
         $headers = [
@@ -103,35 +123,132 @@ class RedditOAuthProvider extends AbstractProvider
 
         return array_merge(parent::getHeaders($token), $headers);
     }
+    
+    
 
     /**
-     * {@inheritDoc}
+     * Returns all options that can be configured.
      *
-     * @see https://github.com/reddit/reddit/wiki/OAuth2
+     * @return array
      */
-    public function getAccessToken($grant = "authorization_code", array $params = [])
+    protected function getConfigurableOptions()
     {
-        // Allow Reddit-specific 'installed_client' to be specified as a string,
-        // keeping consistent with the other grant types.
-        if ($grant === "installed_client") {
-            $grant = new InstalledClient();
-        }
-
-        return parent::getAccessToken($grant, $params);
+        return array_merge($this->getRequiredOptions(), [
+            'accessTokenMethod',
+            'accessTokenResourceOwnerId',
+            'scopeSeparator',
+            'responseError',
+            'responseCode',
+            'responseResourceOwnerId',
+            'scopes',
+        ]);
     }
 
     /**
-     * {@inheritDoc}
+     * Returns all options that are required.
+     *
+     * @return array
      */
-    public function getAuthorizationUrl(array $options = [])
+    protected function getRequiredOptions()
     {
-        $url = parent::getAuthorizationUrl();
+        return [
+            'urlAuthorize',
+            'urlAccessToken',
+            'urlResourceOwnerDetails',
+        ];
+    }
 
-        // This is required as an option to be given a refresh token
-        if (isset($options["duration"])) {
-            $url .= "&duration={$options['duration']}";
+    /**
+     * Verifies that all required options have been passed.
+     *
+     * @param  array $options
+     * @return void
+     * @throws InvalidArgumentException
+     */
+    private function assertRequiredOptions(array $options)
+    {
+        $missing = array_diff_key(array_flip($this->getRequiredOptions()), $options);
+
+        if (!empty($missing)) {
+            throw new InvalidArgumentException(
+                'Required options not defined: ' . implode(', ', array_keys($missing))
+            );
         }
+    }
 
-        return $url;
+    /**
+     * @inheritdoc
+     */
+    public function getBaseAuthorizationUrl()
+    {
+        return $this->urlAuthorize;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getBaseAccessTokenUrl(array $params)
+    {
+        return $this->urlAccessToken;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getResourceOwnerDetailsUrl(AccessToken $token)
+    {
+        return $this->urlResourceOwnerDetails;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getDefaultScopes()
+    {
+        return $this->scopes;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function getAccessTokenMethod()
+    {
+        return $this->accessTokenMethod ?: parent::getAccessTokenMethod();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function getAccessTokenResourceOwnerId()
+    {
+        return $this->accessTokenResourceOwnerId ?: parent::getAccessTokenResourceOwnerId();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function getScopeSeparator()
+    {
+        return $this->scopeSeparator ?: parent::getScopeSeparator();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function checkResponse(ResponseInterface $response, $data)
+    {
+        if (!empty($data[$this->responseError])) {
+            $error = $data[$this->responseError];
+            $code  = $this->responseCode ? $data[$this->responseCode] : 0;
+            throw new IdentityProviderException($error, $code, $data);
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function createResourceOwner(array $response, AccessToken $token)
+    {
+        return new GenericResourceOwner($response, $this->responseResourceOwnerId);
     }
 }
